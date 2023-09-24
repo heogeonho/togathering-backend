@@ -1,37 +1,31 @@
 "use strict";
 
+const db = require("../config/db");
+
 class UserStorage {
-    static #users = {
-        id: ["user001", "user002"],
-        psword: ["123","123"],
-        name: ["홍길동", "김길동"]
-    };
+   static getUserInfo(id) {
+      return new Promise((resolve, reject) => {
+         const query = "SELECT * FROM USER_INFO WHERE user_id = ?;";
+         db.query(query, [id], (err, data) => {
+            if (err) reject(`${err}`);
+            resolve(data[0]);
+         });
+      });
+   }
 
-    static getUsers(...fields) {
-        const users = this.#users;
-        const newUsers = fields.reduce((newUsers, field) => {
-            if (users.hasOwnProperty(field)) {
-                newUsers[field] = users[field];
+   static async save(userInfo) {
+      return new Promise((resolve, reject) => {
+         const query = "INSERT INTO USER_INFO(user_id, password, nickname, email) VALUES(?,?,?,?);";
+         db.query(
+            query,
+            [userInfo.user_id, userInfo.password, userInfo.nickname, userInfo.email],
+            (err) => {
+               if (err) reject(`${err}`);
+               resolve({ success: true });
             }
-            return newUsers;
-        }, {});
-        return newUsers;
-    }
-
-    static getUserInfo(id) {
-        const users = this.#users;
-        const idx = users.id.indexOf(id);
-        const usersKeys = Object.keys(users);
-        const userInfo = usersKeys.reduce((newUser, info) => {
-            newUser[info] = users[info][idx];
-            return newUser;
-        }, {});
-        return userInfo;
-    }
-
-    static save(userInfo) { 
-      return { success: true };  
-    }
+         );
+      });
+   }
 }
 
 module.exports = UserStorage;
